@@ -37,6 +37,25 @@ export default {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      keyframes: {
+        slideDown: {
+          from: { height: '0' },
+          to: { height: 'var(--radix-collapsible-content-height)' },
+        },
+        slideUp: {
+          from: { height: 'var(--radix-collapsible-content-height)' },
+          to: { height: '0' },
+        },
+        pulse: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.5' },
+        },
+      },
+      animation: {
+        slideDown: 'slideDown 200ms ease-out',
+        slideUp: 'slideUp 200ms ease-out',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      },
     },
   },
   plugins: [],
