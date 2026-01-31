@@ -19,6 +19,25 @@ interface StartRunRequest {
   additional_context?: string
 }
 
+interface ApiErrorResponse {
+  error: {
+    code: string
+    message: string
+  }
+}
+
+export class ApiError extends Error {
+  public status: number
+  public code: string
+
+  constructor(status: number, code: string, message: string) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+    this.code = code
+  }
+}
+
 class ApiClient {
   private baseUrl: string
   private token: string | null = null
@@ -31,13 +50,17 @@ class ApiClient {
     this.token = token
   }
 
+  clearToken() {
+    this.token = null
+  }
+
   private async fetch<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     }
 
     if (this.token) {
@@ -50,8 +73,20 @@ class ApiClient {
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
-      throw new Error(error.message || `HTTP ${response.status}`)
+      let errorCode = 'UNKNOWN_ERROR'
+      let errorMessage = `HTTP ${response.status}`
+
+      try {
+        const errorData: ApiErrorResponse = await response.json()
+        if (errorData.error) {
+          errorCode = errorData.error.code
+          errorMessage = errorData.error.message
+        }
+      } catch {
+        // Use default error message
+      }
+
+      throw new ApiError(response.status, errorCode, errorMessage)
     }
 
     return response.json()
@@ -97,7 +132,7 @@ class ApiClient {
     formData.append('file', file)
     formData.append('type', docType)
 
-    const headers: HeadersInit = {}
+    const headers: Record<string, string> = {}
     if (this.token) {
       headers['Authorization'] = `Bearer ${this.token}`
     }
@@ -112,8 +147,20 @@ class ApiClient {
     )
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({}))
-      throw new Error(error.message || `HTTP ${response.status}`)
+      let errorCode = 'UPLOAD_ERROR'
+      let errorMessage = `HTTP ${response.status}`
+
+      try {
+        const errorData: ApiErrorResponse = await response.json()
+        if (errorData.error) {
+          errorCode = errorData.error.code
+          errorMessage = errorData.error.message
+        }
+      } catch {
+        // Use default error message
+      }
+
+      throw new ApiError(response.status, errorCode, errorMessage)
     }
 
     return response.json()
