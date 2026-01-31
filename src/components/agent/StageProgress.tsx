@@ -32,7 +32,7 @@ export function StageProgress() {
                 isActive
                   ? isFailed
                     ? 'bg-red-500/20 text-red-500'
-                    : 'bg-primary text-primary-foreground'
+                    : 'bg-primary text-primary-foreground animate-pulse'
                   : isComplete
                   ? 'bg-green-500/20 text-green-500'
                   : 'bg-secondary text-muted-foreground'
